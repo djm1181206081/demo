@@ -1,307 +1,327 @@
-# author:jason
 import random
-#银行库
-bank = {"张江河":{"account":"fcTVzj9m","password":123456,"acctype":1,"country":"中国","province":"浙江","street":"万花乡","door":"332","bank_name":"中国农业银行昌平沙河支行","money":3000000},
-        "万军":{"account":"fcTVzj80","password":123456,"acctype":0,"country":"中国","province":"浙江","street":"万花乡","door":"312","bank_name":"中国农业银行昌平沙河支行","money":5000000}}
-bank_name = "中国工商银行昌平支行"
-bank_choice = {"1":"开户","2":"存钱","3":"取钱","4":"转账","5":"查询","6":"Bye"}  # 银行业务选项
-# 开户成功的信息模板
-myinfo='''
-    \033[0;32;40m
-    ------------账户信息------------
-    账号：{account}
-    姓名：{username}
-    密码：{password}
-    账户类型(0:金卡/1:普通卡):{acctype}
-    地址：
-        国家：{country}
-        省份：{province}
-        街道：{street}
-        门牌号：{door}
-    账户余额：{money}
-    注册银行名：{bank_name}
-    -------------------------------
-    \033[0m
-'''
+import pymysql
+
+db = pymysql.connect(host='localhost', port=3306, user='root', password='', db='test', charset='utf8')
+cur = db.cursor()
+
+print('''
+	********************************************
+	*               中国农业银行                *
+	*               账户管理系统                *
+	*                  v1.0                    *
+	********************************************
+	*1·开户                                    *
+	*2·存钱                                    *
+	*3·取钱                                    *
+	*4·转账                                    *
+	*5·查询                                    *
+	*6·退出                                    *
+	********************************************
+	''')
 
 
-# 欢迎模板
-welcome = '''
-***********************************
-*      中国工商银行账户管理系统       *
-***********************************
-*               选项              *
-'''
+def add_user(x):
+    username = random.randint(10000000, 99999999)
+    namee = input("请输入姓名：")
+    password = input("请输入账户密码：")
+    country = input("请输入您的国籍：")
+    province = input("请输入您的居住省份：")
+    street = input("请输入您的街道：")
+    gate = input("请输入您的门牌号：")
+    moneyy = input("请输入您开户时存入的金额：")
+    cur.execute(
+        "INSERT INTO icbc(username,namee,password,country,province,street,gate,moneyy) VALUES('%s','%s','%s','%s','%s','%s','%s','%s')" % (
+        username, namee, password, country, province, street, gate, moneyy))
+    db.commit()
+    print("创建成功！您当前账户为：", username, "！密码：", password, "！余额：", moneyy, "！")
 
-welcome_item = '''*              {0}.{1}             *'''
 
-def print_welcome():
-    print(welcome,end="")
-    keys = bank_choice.keys()
-    for i in keys:
-        print(welcome_item.format(i,bank_choice[i]))
-    print("**********************************")
-
-# 输入帮助方法：chose是打印选项
-def inputHelp(chose,datatype="str"):
+def money_save():
+    user_index = USER.index(Id)
     while True:
-        print("请输入",chose,":")
-        i = input(">>>:")
-        if len(i) == 0:
-            print("该项不能为空！请重新输入！")
-            continue
-        if datatype != "str":
-            return int(i)
-        else:
-            return i
-
-# 判断是否存在该银行选项
-def  isExists(chose,data):
-    if chose in data:
-        return True
-    return False
-
-
-# 获取随机码
-def  getRandom():
-    li = "0123456789qwertyuiopasdfghjklzxcvbnmZXCVBNMASDFGHJKLQWERTYUIOP"
-    string = ""
-    for i in range(8):
-        string =  string + li[int(random.random()* len(li))]
-    return string
-
-# 通过账号获取账户信息
-def findByAccount(account):
-    for i in bank.keys():
-        if bank[i]["account"] == account:
-            return i
-    return None
-
-# 银行的开户方法
-def bank_addUser(username,password,acctype,country,province,street,door,money):
-    # 查询是否已满
-    if len(bank) >= 100:
-        return 3
-
-
-    # 查询是否存在
-    elif username in bank:
-        return 2
-
-    # 插入数据
-    elif username not in bank:
-        num = str(password)
-        if len(num) == 6:
-            bank[username] ={
-                "account":getRandom(),"password":password,"acctype":acctype,"country":country,"province":province,"street":street,"door":door
-                ,"money":money,
-                "bank_name":bank_name
-                }
-            return 1
-
-# 银行的存钱方法
-def bank_saveMoney(ac,money):
-    for i in bank.keys():
-        if bank[i]["account"] == ac:
-            print(bank[i]["money"])
-            bank[i]["money"] += money
-            return True
-    return False
-
-# 银行的查询功能
-def bank_selectUser(account,password):
-
-    uname = findByAccount(account)
-
-    if uname != None and len(uname) != 0:
-        if password == bank[uname]["password"]:
-            user = bank[uname]
-            print(myinfo.format(account=user["account"],
-                            username=uname,
-                            password=user["password"],
-                            acctype=user["acctype"],
-                            country=user["country"],
-                            province=user["province"],
-                            street=user["street"],
-                            door=user["door"],
-                            money=user["money"],
-                            bank_name=user["bank_name"]
-                            ))
-        else:
-            print("用户密码错误！")
-    else:
-        print("该用户不存在！")
-
-# 银行的取钱功能
-def bank_takeMoney(account,password,money):
-    uname = findByAccount(account)
-    if uname != None:
-        if bank[uname]["password"] == password:
-            if bank[uname]["money"] < money:
-                return 3
-            else:
-                bank[uname]["money"] -= money
-                return 0
-        else:
-            return 2
-    else:
-        return 0
-
-# 银行的转账功能
-def bank_transformMoney(outputaccount,inputaccount,outputpassword,outputmoney):
-    uname = findByAccount(outputaccount)
-    if bank[uname]["acctype"] == 0 and outputmoney <= 50000:
-        status = bank_takeMoney(outputaccount,outputpassword,outputmoney)
-        if status == 1:
-            return status
-        elif status == 2:
-            return status
-        elif status == 3:
-            return status
-    elif bank[uname]["acctype"] == 1 and outputmoney <= 20000:
-        status = bank_takeMoney(outputaccount,outputpassword,outputmoney)
-        if status == 1:
-            return status
-        elif status == 2:
-            return status
-        elif status == 3:
-            return status
-    else:
-        return None
-
-    if inputaccount != None and findByAccount(inputaccount) != None:
-        bank_saveMoney(inputaccount,outputmoney)
-        return 0
-    else:
-        return 1
-
-
-# 开户方法
-def  addUser():
-    username = inputHelp("用户名")
-    password = inputHelp("密码","int")
-    acctype = inputHelp("账户类型(0:金卡/1:普通卡)","int")
-    country = inputHelp("居住地址：1.国家：")
-    province =  inputHelp("省份")
-    street = inputHelp("街道")
-    door = inputHelp("门牌号")
-    money =  inputHelp("银行卡余额","int")
-
-    # 调用银行的开户方法完成开户操作  返回 1 2 3
-    status = bank_addUser(username,password,acctype,country,province,street,door,money)
-    # 判断1   2   3
-    if status == 1:
-        user = bank[username]
-        print("恭喜开户成功！以下是您的开户信息：")
-        print(myinfo.format(account=user["account"],
-                            username=username,
-                            password=user["password"],
-                            acctype=user["acctype"],
-                            country=user["country"],
-                            province=user["province"],
-                            street=user["street"],
-                            door=user["door"],
-                            money=user["money"],
-                            bank_name=user["bank_name"]
-                            ))
-    elif status == 2:
-        print("改用户已经存在！请携带证件到其他银行办理！谢谢！！！！！")
-    elif status == 3:
-        print("银行库已满！请携带证件到其他银行办理！谢谢！！！！！")
-    else:
-        print("密码设置错误！")
-
-# 存钱
-def saveMoney():
-    account = inputHelp("账号")
-    m =  inputHelp("存入的金额","int")
-
-    flag = bank_saveMoney(account,m)
-
-    if flag:
-        print("存储成功!您的个人信息为：")
-        uname = findByAccount(account)
-        user = bank[uname]
-        print(myinfo.format(account=user["account"],
-                            username=uname,
-                            password=user["password"],
-                            acctype=user["acctype"],
-                            country=user["country"],
-                            province=user["province"],
-                            street=user["street"],
-                            door=user["door"],
-                            money=user["money"],
-                            bank_name=user["bank_name"]
-                            ))
-    else:
-        print("对不起，您的个人信息不存在！请先开户后再次操作！")
-
-# 取钱
-def takeMoney():
-    account = inputHelp("账户")
-    password =  inputHelp("密码","int")
-    tmoney = inputHelp("取出金额","int")
-
-    f = bank_takeMoney(account,password,tmoney)
-
-    if f == 1:
-        print("改用户不存在！")
-    elif f == 2:
-        print("密码错误！")
-    elif f == 3:
-        print("取款金额不足！")
-    elif f == 0:
-        print("取款成功！")
-        bank_selectUser(account,password)
-
-
-# 转账功能
-def transformMoney():
-    output = inputHelp("转出的账号")
-    input = inputHelp("转入的账号")
-    outputpass =  inputHelp("转出的密码","int")
-    outputmoney = inputHelp("要转出的金额","int")
-
-    f = bank_transformMoney(output,input,outputpass,outputmoney)
-
-    if f == 1:
-        print("转出或转入的账号不存在！")
-    elif f == 2:
-        print("输入密码错误！")
-    elif f == 3:
-        print("转账金额不足！")
-    elif f == 0:
-        print("转账成功！")
-        print("您的个人信息：")
-        bank_selectUser(output,outputpass)
-    else:
-        print("超过每日单笔转账限额")
-
-# 查询账户方法
-def selectUser():
-    account = inputHelp("账号")
-    password = inputHelp("密码","int")
-
-    bank_selectUser(account,password)
-
-# 核心程序
-while True:
-
-    print_welcome()
-    chose = inputHelp("选项")
-    if isExists(chose,bank_choice):
-        if chose  == "1":
-            addUser()
-        elif chose == "2":
-            saveMoney()
-        elif chose == "3":
-            takeMoney()
-        elif chose == "4":
-            transformMoney()
-        elif chose == "5":
-            selectUser()
-        elif chose == "6":
-            print("Bye,Bye您嘞！！！！")
+        save_password = input("请输入账户密码：")
+        if save_password == PASSWORD[user_index]:
+            Change_money = float(input("请输入存款金额："))
+            MONEYY[user_index] += Change_money
+            cur.execute("UPDATE icbc SET moneyy='%s' WHERE username='%s'" % (MONEYY[user_index], Id))
+            db.commit()
+            print("存款成功！当前账户:", Id, "余额为：", MONEYY[user_index])
             break
-    else:
-        print("不存在改选项，别瞎弄！")
+        else:
+            print("密码输入错误！！")
+
+
+def money_draw():
+    user_index = USER.index(Id)
+    while True:
+        save_password = input("请输入账户密码：")
+        if save_password == PASSWORD[user_index]:
+            Change_money = float(input("请输入取款金额："))
+            if Change_money > MONEYY[user_index]:
+                print("余额不足！！")
+                break
+            else:
+                MONEYY[user_index] -= Change_money
+                cur.execute("UPDATE icbc SET moneyy='%s' WHERE username='%s'" % (MONEYY[user_index], Id))
+                db.commit()
+                print("取款成功！当前账户:", Id, "余额为：", MONEYY[user_index])
+                break
+        else:
+            print("密码输入错误！！")
+
+
+def money_transfer():
+    user_index = USER.index(Id)
+    while True:
+        save_password = input("请输入账户密码：")
+        if save_password == PASSWORD[user_index]:
+            user_Id = input("请输入转入账户：")
+            if user_Id not in USER:
+                print("您输入的账户不存在！请检查！！")
+            else:
+                user_Idindex = USER.index(user_Id)
+                Change_money = float(input("请输入转账金额："))
+                if Change_money > MONEYY[user_index]:
+                    print("余额不足！！")
+                    break
+                else:
+                    MONEYY[user_index] -= Change_money
+                    MONEYY[user_Idindex] += Change_money
+                    cur.execute("UPDATE icbc SET moneyy='%s' WHERE username='%s'" % (MONEYY[user_index], Id))
+                    cur.execute("UPDATE icbc SET moneyy='%s' WHERE username='%s'" % (MONEYY[user_Idindex], user_Id))
+                    db.commit()
+                    print("转账成功！当前账户:", Id, "余额为：", MONEYY[user_index])
+                    break
+        else:
+            print("密码输入错误！！")
+
+
+def chaxun():
+    user_index = USER.index(Id)
+    while True:
+        save_password = input("请输入账户密码：")
+        if save_password == PASSWORD[user_index]:
+            cur.execute("SELECT * FROM icbc WHERE username='%s'" % (Id))
+            print(cur.fetchall())
+            break
+        else:
+            print("密码输入错误！！")
+
+
+def Id_chaxun():
+    cur.execute('SELECT username,password,moneyy FROM icbc')
+    data_cx = cur.fetchall()
+    for x in range(len(data_cx)):
+        USER.append(data_cx[x][0])
+        PASSWORD.append(data_cx[x][1])
+        MONEYY.append(data_cx[x][2])
+
+
+if __name__ == '__main__':
+    while True:
+        choice = int(input("请输入要办理的业务序号："))
+        USER = []
+        PASSWORD = []
+        MONEYY = []
+        if choice == 1:
+            Id_chaxun()
+            while True:
+                Id = input("请输入您的账号：")
+                if Id in USER:
+                    print("该用户已存在！！")
+                else:
+                    add_user(x)
+                    break
+
+        elif choice == 2:
+            Id_chaxun()
+            while True:
+                Id = input("请输入您的账号：")
+                if Id not in USER:
+                    print("用户不存在！！")
+                else:
+                    money_save()
+                    break
+
+        elif choice == 3:
+            Id_chaxun()
+            while True:
+                Id = input("请输入您的账号：")
+                if Id not in USER:
+                    print("用户不存在！！")
+                else:
+                    money_draw()
+                    break
+
+        elif choice == 4:
+            Id_chaxun()
+            while True:
+                Id = input("请输入您的账号：")
+                if Id not in USER:
+                    print("用户不存在！！")
+                else:
+                    money_transfer()
+                    break
+
+        elif choice == 5:
+            Id_chaxun()
+            while True:
+                Id = input("请输入您的账号：")
+                if Id not in USER:
+                    print("用户不存在！！")
+                else:
+                    chaxun()
+                    break
+
+        elif choice == 6:
+            exit()
+        else:
+            print("请正确选择要办理的业务！！")
+
+cur.close()
+db.close()
+
+# while True:
+
+# 	def new_user(username,password,country,province,street,gate,money,Id):
+
+# 		dictt[Id]['username']=username
+# 		dictt[Id]['password']=password
+# 		dictt[Id]['country']=country
+# 		dictt[Id]['province']=province
+# 		dictt[Id]['street']=street
+# 		dictt[Id]['gate']=gate
+# 		dictt[Id]['money']=money
+# 		print('用户',Id,'添加成功！')
+# 		print(dictt)
+
+# 	def money_save():
+# 		while True:
+# 			savemoney=int(input('请输入存款金额：'))
+# 			dictt[Id]['money']=dictt[Id]['money']+savemoney
+# 			print('存款成功！当前余额为：',dictt[Id]['money'])
+# 			ch=input("是否继续存款？1、继续/其他退出")
+# 			if ch==1:
+# 				continue
+# 			else:
+# 				break
+
+# 	def money_draw():
+# 		mon=float(input("请输入要取得金额数："))
+# 		if mon>int(dictt[Id]['money']):
+# 			print("余额不足！！")
+# 		else:
+# 			dictt[Id]['money']=int(dictt[Id]['money'])-mon
+# 			print("已成功取出",mon,"元，当前账户余额为",dictt[Id]['money'],"元")
+
+# 	def money_transfer():
+# 		tId=input("请输入转入账户:")
+# 		dictt[tId]['username']=tId
+# 		mone=float(input("请输入转账金额："))
+# 		if mone<dictt[Id]['money']:
+# 			print("余额不足！！")
+# 		else:
+# 			print("转账成功！！您当前账户余额为：",dictt[Id]['money']-mone,"元！！")
+
+# 	def chaxun():
+# 		print('''
+# 	******************************
+# 	 1.余额 2.账号密码 3.个人信息
+# 	******************************
+# 			''')
+# 		cho=int(input('请输入要查询的内容：'))
+# 		if cho==1:
+# 			print(dictt[Id]['money'])
+# 		elif cho==2:
+# 			print(dictt[Id]['username'],dictt[Id]['password'])
+# 		elif cho==3:
+# 			print("")
+# 		else:
+# 			return 1
+
+# 	if __name__ == '__main__':
+
+# 		choice=int(input('请输入要办理的业务序号：'))
+# 		if choice==1:
+# 			username = input("请输入您的用户名：")
+# 			if username in data:
+# 				pass
+# 			password = input("请输入您的开户密码：")
+# 			country = input("请输入您的国籍：")
+# 			province = input("请输入您的居住省份：")
+# 			street = input("请输入您的街道：")
+# 			gate = input("请输入您的门牌号：")
+# 			money = int (input("请输入您开户时存入的金额："))
+# 			Id=random.randint(10000000,99999999)
+# 			print("你的账户为：",Id)
+# 			dictt[Id]={}
+# 			new_user(username,password,country,province,street,gate,money,Id)
+# 		elif choice==2:
+# 			x=0
+# 			Id=input("请输入要操作的账户：")
+# 			for m in dictt:
+# 				if Id==m:
+# 					passw=input("请输入账户密码：")
+# 					if passw==dictt[Id]['password']:
+# 						money_save()
+# 					else:
+# 						x+=1
+# 						print("密码第",x,"次错误！！")
+# 						if x>=3:
+# 							print("账户已锁定！！")
+# 							exit()
+# 				else:
+# 					print("用户不存在！！")
+# 		elif choice==3:
+# 			x=0
+# 			Id=input("请输入要操作的账户：")
+# 			for n in dictt:
+# 				if Id==n:
+# 					passw=input("请输入账户密码：")
+# 					if passw==dictt[Id]['password']:
+# 						money_draw()
+# 					else:
+# 						x+=1
+# 						print("密码第",x,"次错误！！")
+# 						if x>=3:
+# 							print("账户已锁定！！")
+# 							exit()
+# 				else:
+# 					print("用户不存在！！")
+# 		elif choice==4:
+# 			x=0
+# 			Id=input("请输入要操作的账户：")
+# 			for o in dictt:
+# 				if Id==o:
+# 					passw=input("请输入账户密码：")
+# 					if passw==dictt[Id]['password']:
+# 						money_transfer()
+# 					else:
+# 						x+=1
+# 						print("密码第",x,"次错误！！")
+# 						if x>=3:
+# 							print("账户已锁定！！")
+# 							exit()
+# 				else:
+# 					print("用户不存在！！")
+# 		elif choice==5:
+# 			x=0
+# 			Id=input("请输入要操作的账户：")
+# 			for p in dictt:
+# 				if Id==p:
+# 					passw=input("请输入账户密码：")
+# 					if passw==dictt[Id]['password']:
+# 						chaxun()
+# 					else:
+# 						x+=1
+# 						print("密码第",x,"次错误！！")
+# 						if x>=3:
+# 							print("账户已锁定！！")
+# 							exit()
+# 				else:
+# 					print("用户不存在！！")
+# 		elif choice==6:
+# 			exit()
+# 		else:
+# 			print("输入有误！！")
+# 			continue
