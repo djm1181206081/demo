@@ -14,7 +14,7 @@ driver.get(r'https://www.jd.com')
 driver.maximize_window()
 
 # 搜索框输入内容
-driver.find_element('xpath',"//*[@id='key']").send_keys("吹风机")
+driver.find_element('xpath',"//*[@id='key']").send_keys("机械键盘")
 # 点击搜索
 driver.find_element('xpath',"//*[@clstag='h|keycount|head|search_a']").click()
 time.sleep(2)
@@ -53,7 +53,7 @@ driver.get(r'https://www.suning.com')
 
 driver.maximize_window()
 
-driver.find_element('xpath',"//*[@id='searchKeywords']").send_keys("冰箱")
+driver.find_element('xpath',"//*[@id='searchKeywords']").send_keys("平板")
 
 driver.find_element('xpath',"//*[@id='searchSubmit']").click()
 
@@ -78,7 +78,7 @@ driver.get(r'https://www.bilibili.com')
 
 driver.maximize_window()
 
-driver.find_element('xpath',"//*[@autocomplete='off']").send_keys("易烊千玺舞蹈")
+driver.find_element('xpath',"//*[@autocomplete='off']").send_keys("自来也")
 
 time.sleep(2)
 driver.find_element('xpath',"//*[@class='nav-search-btn nav-search-btn-exper nav-search-btn-exper3 nav-search-btn-exper4 nav-search-btn-exper4-hover']").click()
